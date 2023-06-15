@@ -4,7 +4,8 @@
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:5173",
-    "distDir": "../dist"
+    "distDir": "../dist",
+    "withGlobalTauri":false
   },
   "package": {
     "productName": "vault-drive",
@@ -12,7 +13,11 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": true,
+      "fs": {
+        "all": true,
+        "scope": ["**/*"]
+      }
     },
     "bundle": {
       "active": true,
