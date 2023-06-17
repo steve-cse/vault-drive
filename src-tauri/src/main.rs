@@ -14,7 +14,7 @@ fn main() {
 #[tauri::command]
 fn process_file(file_name: String, file_password: String) -> String {
     match run_cha_cha(file_name, file_password) {
-        Ok(()) => "File processing completed successfully.".to_string(),
+        Ok(()) => "SUCCESS: File processing completed successfully".to_string(),
         Err(error) => {
             format!("ERROR: {}", error)
         }

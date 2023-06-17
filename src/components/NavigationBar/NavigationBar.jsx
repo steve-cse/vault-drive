@@ -7,7 +7,7 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import Alert from "react-bootstrap/Alert";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-
+import logo from "../../assets/logo.png";
 export default function NavigationBar() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
@@ -26,7 +26,17 @@ export default function NavigationBar() {
     <>
       <Navbar bg="light" expand="md">
         <Container>
-          <Navbar.Brand>💽 Vault Drive</Navbar.Brand>
+          <Navbar.Brand href="#home">
+            <img
+              alt="logo"
+              src={logo}
+              width="30"
+              height="30"
+              className="d-inline-block align-top"
+            />{" "}
+            Vault Drive
+          </Navbar.Brand>
+
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse>
             <Nav className="me-auto">
