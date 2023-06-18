@@ -4,13 +4,15 @@ import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
 import { readBinaryFile, writeBinaryFile, exists } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
-
+import { useAuth } from "../../contexts/AuthContext";
+import { storage } from "../../firebaseconfig/firebase";
 export default function Upload() {
   const keyRef = useRef();
   const deleteRef = useRef(); //deleteRef.current.checked
   const [selectedFile, setSelectedFile] = useState("");
   const [variant, setVariant] = useState("primary");
   const [syslog, setSyslog] = useState("All Systems Operational");
+  const { currentUser } = useAuth();
 
   const openFile = async () => {
     const selected = await open({
@@ -39,7 +41,30 @@ export default function Upload() {
       }
     );
   }
-
+  async function handleUpload() {
+    try {
+      setVariant("info");
+      setSyslog("File uploading in progress...");
+      const userUID = currentUser.uid;
+      // Normalize the file path to handle different separators
+      const normalizedPath = selectedFile.replace(/\\/g, '/');
+      // Split the path by the forward slash '/'
+      const pathSegments = normalizedPath.split('/');
+      // Get the last segment which represents the file name
+      const fileName = pathSegments[pathSegments.length - 1];
+      const fileContent = await readBinaryFile(selectedFile)
+      // Create a reference to the file location in Firebase Storage
+      const fileRef = storage.ref().child(`documents/${userUID}/${fileName}`);
+      // Upload the file to Firebase Storage
+      await fileRef.put(fileContent);
+     
+      setVariant("success");
+      setSyslog("File upload successful");
+    } catch (err) {
+      setVariant("danger");
+      setSyslog(err.message);
+    }
+  }
   return (
     <>
       <NavigationBar />
@@ -50,7 +75,8 @@ export default function Upload() {
         <div className="w-100">
           <Form>
             <Form.Group>
-              <InputGroup className="mb-3 mt-3">
+              <Form.Label>File to Encrypt</Form.Label>
+              <InputGroup className="mb-3">
                 <InputGroup.Text
                   onClick={() => openFile()}
                   style={{ cursor: "pointer" }}
@@ -65,6 +91,21 @@ export default function Upload() {
               </InputGroup>
               <Form.Label>Key</Form.Label>
               <Form.Control ref={keyRef} type="password" className="mb-3" />
+              <Form.Label>File to Upload</Form.Label>
+              <InputGroup className="mb-3 ">
+                <Form.Control
+                  className="pe-none"
+                  readOnly
+                  defaultValue={selectedFile}
+                />
+                <InputGroup.Text
+                  onClick={() => openFile()}
+                  style={{ cursor: "pointer" }}
+                >
+                  Pick Another File
+                </InputGroup.Text>
+              </InputGroup>
+
               <Form.Check
                 type="switch"
                 className="mb-3"
@@ -86,7 +127,12 @@ export default function Upload() {
           <Button style={{ marginRight: "10px", marginBottom: "10px" }}>
             Decrypt
           </Button>
-          <Button style={{ marginRight: "10px", marginBottom: "10px" }}>
+          <Button
+            onClick={() => {
+              handleUpload();
+            }}
+            style={{ marginRight: "10px", marginBottom: "10px" }}
+          >
             Upload
           </Button>
         </div>
