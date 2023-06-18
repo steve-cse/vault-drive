@@ -22,8 +22,8 @@ export default function Signup() {
       setLoading(true);
       await signup(emailRef.current.value, passwordRef.current.value);
       setLoading(false);
-      console.log("Routing to Dashboard.")
-      navigate("/");
+      console.log("Routing to login.")
+      navigate("/login");
     } catch (err) {
       setError(err.code);
       setLoading(false);

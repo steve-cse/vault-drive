@@ -17,6 +17,7 @@ export default function NavigationBar() {
 
     try {
       await logout();
+      sessionStorage.setItem("myData", "");
       window.open("/login", "_top");
     } catch {
       setError("Failed to log out");
