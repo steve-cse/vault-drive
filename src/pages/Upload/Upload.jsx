@@ -3,6 +3,7 @@ import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
 import { readBinaryFile, writeBinaryFile, exists } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/dialog";
+import { ask } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { storage } from "../../firebaseconfig/firebase";
@@ -10,6 +11,7 @@ export default function Upload() {
   const keyRef = useRef();
   const deleteRef = useRef(); //deleteRef.current.checked
   const [selectedFile, setSelectedFile] = useState("");
+  const [fileToUpload, setFileToUpload] = useState("");
   const [variant, setVariant] = useState("primary");
   const [syslog, setSyslog] = useState("All Systems Operational");
   const { currentUser } = useAuth();
@@ -25,14 +27,31 @@ export default function Upload() {
       setSelectedFile(selected);
     }
   };
+
+  const openFileToUpload = async () => {
+    const selected = await open({
+      multiple: false,
+    });
+
+    if (selected === null) {
+      return;
+    } else {
+      setFileToUpload(selected);
+    }
+  };
   async function handleEncrypt(key) {
     console.log("Encryption!!!");
-
+    if (key === "") {
+      setVariant("danger");
+      setSyslog("Please provide a key");
+      return;
+    }
     invoke("process_file", { fileName: selectedFile, filePassword: key }).then(
       (response) => {
         if (response.includes("SUCCESS")) {
           setVariant("success");
           setSyslog(response);
+          setFileToUpload(selectedFile + ".enc");
         } else if (response.includes("ERROR")) {
           setVariant("danger");
           setSyslog(response);
@@ -43,27 +62,65 @@ export default function Upload() {
   }
   async function handleUpload() {
     try {
-      setVariant("info");
-      setSyslog("File uploading in progress...");
       const userUID = currentUser.uid;
       // Normalize the file path to handle different separators
-      const normalizedPath = selectedFile.replace(/\\/g, '/');
+      const normalizedPath = fileToUpload.replace(/\\/g, "/");
       // Split the path by the forward slash '/'
-      const pathSegments = normalizedPath.split('/');
+      const pathSegments = normalizedPath.split("/");
       // Get the last segment which represents the file name
       const fileName = pathSegments[pathSegments.length - 1];
-      const fileContent = await readBinaryFile(selectedFile)
+
+      // Check if the file extension is not ".enc"
+      if (!fileName.endsWith(".enc")) {
+        // Show a confirmation message
+        const confirmed = await ask(
+          "Are you sure you want to upload a file that is not encrypted?",
+          {
+            title: "Vault Drive",
+            type: "warning",
+          }
+        );
+
+        if (!confirmed) {
+          // User canceled the upload
+          return;
+        }
+      }
+      setVariant("info");
+      setSyslog("File uploading in progress...");
+      const fileContent = await readBinaryFile(fileToUpload);
       // Create a reference to the file location in Firebase Storage
       const fileRef = storage.ref().child(`documents/${userUID}/${fileName}`);
       // Upload the file to Firebase Storage
       await fileRef.put(fileContent);
-     
-      setVariant("success");
-      setSyslog("File upload successful");
+
+      // Check if deleteRef is checked and the file extension is ".enc"
+      if (deleteRef.current.checked && fileName.endsWith(".enc")) {
+        invoke("delete_file", { filePath: fileToUpload }).then((response) => {
+          if (response.includes("ERROR")) {
+            setVariant("danger");
+            setSyslog(response);
+          } else if (response.includes("SUCCESS")) {
+            setVariant("success");
+            setSyslog("File upload and deletion successful");
+          }
+          console.log(response);
+        });
+      } else {
+        setVariant("success");
+        setSyslog("File upload successful");
+      }
     } catch (err) {
       setVariant("danger");
       setSyslog(err.message);
     }
+  }
+  async function handleDecrypt() {
+    const yes2 = await ask("This action cannot be reverted. Are you sure?", {
+      title: "Tauri",
+      type: "warning",
+    });
+    console.log(yes2);
   }
   return (
     <>
@@ -96,10 +153,10 @@ export default function Upload() {
                 <Form.Control
                   className="pe-none"
                   readOnly
-                  defaultValue={selectedFile}
+                  defaultValue={fileToUpload}
                 />
                 <InputGroup.Text
-                  onClick={() => openFile()}
+                  onClick={() => openFileToUpload()}
                   style={{ cursor: "pointer" }}
                 >
                   Pick Another File
@@ -124,7 +181,12 @@ export default function Upload() {
           >
             Encrypt
           </Button>
-          <Button style={{ marginRight: "10px", marginBottom: "10px" }}>
+          <Button
+            onClick={() => {
+              handleDecrypt();
+            }}
+            style={{ marginRight: "10px", marginBottom: "10px" }}
+          >
             Decrypt
           </Button>
           <Button
