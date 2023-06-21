@@ -7,6 +7,8 @@ import { ask } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { storage } from "../../firebaseconfig/firebase";
+import _sodium from "libsodium-wrappers";
+
 export default function Upload() {
   const keyRef = useRef();
   const deleteRef = useRef(); //deleteRef.current.checked
@@ -116,12 +118,38 @@ export default function Upload() {
     }
   }
   async function handleDecrypt() {
-    const yes2 = await ask("This action cannot be reverted. Are you sure?", {
-      title: "Tauri",
-      type: "warning",
-    });
-    console.log(yes2);
+    await _sodium.ready;
+    const sodium = _sodium;
+
+    const keyPair = sodium.crypto_kx_keypair();
+    let keys = {
+      publicKey: sodium.to_base64(keyPair.publicKey),
+      privateKey: sodium.to_base64(keyPair.privateKey),
+    };
+
+    console.log(keys.privateKey);
+    console.log(keys.publicKey);
+
+    // Convert the base64-encoded keys to binary
+    const privateKey = sodium.from_base64(keys.privateKey);
+    const publicKey = sodium.from_base64(keys.publicKey);
+
+    const cpublicKey = sodium.crypto_scalarmult_base(
+      sodium.from_base64(keys.privateKey)
+    );
+    // Generate the secret key from the private and public keys
+    const secretKey = sodium.crypto_kx_client_session_keys(
+      privateKey,
+      publicKey,
+      cpublicKey
+    );
+    let skeys = {
+      tx: sodium.to_base64(secretKey.sharedTx),
+      rx: sodium.to_base64(secretKey.sharedRx),
+    };
+    console.log(skeys.rx);
   }
+
   return (
     <>
       <NavigationBar />

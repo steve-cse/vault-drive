@@ -45,7 +45,8 @@ export default function NavigationBar() {
               <Nav.Link onClick={() => navigate("/management")}>
                 Management
               </Nav.Link>
-
+              <Nav.Link onClick={() => navigate("/ecdh")}>ECDH</Nav.Link>
+              <Nav.Link onClick={() => navigate("/keygen")}>Get Key Pair</Nav.Link>
               <NavDropdown title="Account">
                 <NavDropdown.Item>
                   <div className="p-2">{currentUser.email}</div>
@@ -55,7 +56,8 @@ export default function NavigationBar() {
                   <Button onClick={handleLogout}>Log Out</Button>
                 </div>
               </NavDropdown>
-              <Nav.Link onClick={() => navigate("/help")}>Help</Nav.Link>
+             
+             
               <Nav.Link onClick={() => navigate("/about")}>About</Nav.Link>
             </Nav>
           </Navbar.Collapse>
