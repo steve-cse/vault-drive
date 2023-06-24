@@ -2,6 +2,12 @@ import React, { useState, useRef } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
 import _sodium from "libsodium-wrappers";
+import { open } from "@tauri-apps/api/dialog";
+import { readBinaryFile, writeBinaryFile, exists } from "@tauri-apps/api/fs";
+import { ask } from "@tauri-apps/api/dialog";
+import { invoke } from "@tauri-apps/api";
+import { getClient, Body, ResponseType } from "@tauri-apps/api/http";
+import { fetch } from "@tauri-apps/api/http";
 
 export default function ECDH() {
   const publicKeyRef = useRef();
@@ -11,9 +17,92 @@ export default function ECDH() {
   const [fileToUpload, setFileToUpload] = useState("");
   const [variant, setVariant] = useState("primary");
   const [sharedSecretKey, setSharedSecretKey] = useState("");
+  const [disableEncButton, setDisableEncButton] = useState(false);
+  const [disableDecButton, setDisableDecButton] = useState(false);
   const [syslog, setSyslog] = useState(
     "Use your private key and the recipient's public key when encrypting a file, and employ the sender's public key along with your private key when decrypting a file."
   );
+
+  const openFile = async () => {
+    const selected = await open({
+      multiple: false,
+    });
+
+    if (selected === null) {
+      return;
+    } else {
+      if (selected.endsWith(".enc")) {
+        setDisableEncButton(true);
+        setDisableDecButton(false);
+      } else {
+        setDisableDecButton(true);
+        setDisableEncButton(false);
+      }
+
+      setSelectedFile(selected);
+    }
+  };
+
+  async function handleGetEncryptionKey(alicePublicKey, bobPrivateKey) {
+    try {
+      await _sodium.ready;
+      const sodium = _sodium;
+      const serverSharedSecret = sodium.crypto_kx_server_session_keys(
+        sodium.crypto_scalarmult_base(sodium.from_hex(bobPrivateKey)),
+        sodium.from_hex(bobPrivateKey),
+        sodium.from_hex(alicePublicKey)
+      );
+      console.log(
+        "Encryption Key: ",
+        sodium.to_hex(serverSharedSecret.sharedRx)
+      );
+      setSharedSecretKey(sodium.to_hex(serverSharedSecret.sharedRx));
+    } catch (error) {
+      setVariant("danger");
+      setSyslog(error.message);
+    }
+  }
+  async function handleGetDecryptionKey(bobPublicKey, alicePrivateKey) {
+    try {
+      await _sodium.ready;
+      const sodium = _sodium;
+      const clientSharedSecret = sodium.crypto_kx_client_session_keys(
+        sodium.crypto_scalarmult_base(sodium.from_hex(alicePrivateKey)),
+        sodium.from_hex(alicePrivateKey),
+        sodium.from_hex(bobPublicKey)
+      );
+      console.log(
+        "Decryption Key: ",
+        sodium.to_hex(clientSharedSecret.sharedTx)
+      );
+      setSharedSecretKey(sodium.to_hex(clientSharedSecret.sharedTx));
+    } catch (error) {
+      setVariant("danger");
+      setSyslog(error.message);
+    }
+  }
+  async function handleEncrypt(key) {
+    console.log("Encryption!!!");
+    if (key === "") {
+      setVariant("danger");
+      setSyslog("Please provide a key");
+      return;
+    }
+    invoke("process_file", { fileName: selectedFile, filePassword: key }).then(
+      (response) => {
+        if (response.includes("SUCCESS")) {
+          setVariant("success");
+          setSyslog(response);
+          setFileToUpload(selectedFile + ".enc");
+        } else if (response.includes("ERROR")) {
+          setVariant("danger");
+          setSyslog(response);
+        }
+        console.log(response);
+      }
+    );
+  }
+
   const openFileToUpload = async () => {
     const selected = await open({
       multiple: false,
@@ -26,30 +115,29 @@ export default function ECDH() {
     }
   };
 
-  async function handleSharedSecret() {
-    await _sodium.ready;
-    const sodium = _sodium;
-    const privateKeyInput=privateKeyRef.current.value
-    const publicKeyInput=publicKeyRef.current.value
-    const clientKeyPair = {
-      publicKey: sodium.crypto_scalarmult_base(
-        sodium.from_hex(privateKeyInput)
-      ),
-      privateKey: sodium.from_hex(privateKeyInput),
-    };
-    const serverKeyPair = {
-      publicKey: sodium.from_hex(publicKeyInput),
-    };
-    const secretKey = sodium.crypto_kx_client_session_keys(
-      clientKeyPair.publicKey,
-      clientKeyPair.privateKey,
-      serverKeyPair.publicKey
-    );
-    // console.log(publicKeyRef.current.value);
-    // console.log(privateKeyRef.current.value);
+  async function handleUpload() {
+    const normalizedPath = fileToUpload.replace(/\\/g, "/");
+    // Split the path by the forward slash '/'
+    const pathSegments = normalizedPath.split("/");
+    // Get the last segment which represents the file name
+    const fileName = pathSegments[pathSegments.length - 1];
 
-    console.log(sodium.to_hex(secretKey.sharedRx));
-    console.log(sodium.to_hex(secretKey.sharedTx));
+    try {
+      const fileContent = await readBinaryFile(fileToUpload);
+
+      const response = await fetch("https://api.filechan.org/upload", {
+        headers: { "Content-Type": "multipart/form-data" },
+        body: Body.form({
+          fileData: {
+            file: fileContent, // either a path or an array buffer of the file contents
+          },
+        }),
+        method: "POST",
+      });
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
   }
   return (
     <>
@@ -78,7 +166,7 @@ export default function ECDH() {
               <Form.Control ref={publicKeyRef} className="mb-3" />
               <Form.Label>Private Key</Form.Label>
               <Form.Control ref={privateKeyRef} className="mb-3" />
-              <Form.Label>Secret Key</Form.Label>
+              <Form.Label>Shared Secret Key</Form.Label>
               <Form.Control
                 readOnly
                 className="mb-3"
@@ -114,14 +202,33 @@ export default function ECDH() {
         </div>
         <div className="mt-4">
           <Button
-            onClick={() => handleSharedSecret()}
+            onClick={() =>
+              handleGetEncryptionKey(
+                publicKeyRef.current.value,
+                privateKeyRef.current.value
+              )
+            }
             style={{ marginRight: "10px", marginBottom: "10px" }}
+            disabled={disableEncButton}
           >
-            Generate Shared Secret Key
+            Get Encryption Key
           </Button>
           <Button
-            onClick={() => handleEncrypt(keyRef.current.value)}
+            onClick={() =>
+              handleGetDecryptionKey(
+                publicKeyRef.current.value,
+                privateKeyRef.current.value
+              )
+            }
             style={{ marginRight: "10px", marginBottom: "10px" }}
+            disabled={disableDecButton}
+          >
+            Get Decryption Key
+          </Button>
+          <Button
+            onClick={() => handleEncrypt(sharedSecretKey)}
+            style={{ marginRight: "10px", marginBottom: "10px" }}
+            disabled={disableEncButton}
           >
             Encrypt
           </Button>
@@ -130,6 +237,7 @@ export default function ECDH() {
               handleDecrypt();
             }}
             style={{ marginRight: "10px", marginBottom: "10px" }}
+            disabled={disableDecButton}
           >
             Decrypt
           </Button>
