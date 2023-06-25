@@ -51,7 +51,8 @@ export default function Upload() {
     }
   };
   async function handleEncrypt(key) {
-    console.log("Encryption!!!");
+    setVariant("info");
+    setSyslog(`File encryption in progress...`);
     if (key === "") {
       setVariant("danger");
       setSyslog("Please provide a key");
@@ -72,7 +73,8 @@ export default function Upload() {
     );
   }
   async function handleDecrypt(key) {
-    console.log("Decryption!!!");
+    setVariant("info");
+    setSyslog(`File decryption in progress...`);
     if (key === "") {
       setVariant("danger");
       setSyslog("Please provide a key");
@@ -122,7 +124,7 @@ export default function Upload() {
           }
         }
         setVariant("info");
-        setSyslog("File uploading in progress...");
+        setSyslog("File upload in progress...");
         const fileContent = await readBinaryFile(fileToUpload);
         // Create a reference to the file location in Firebase Storage
         const fileRef = storage.ref().child(`documents/${userUID}/${fileName}`);

@@ -11,6 +11,8 @@ import {
   BaseDirectory,
 } from "@tauri-apps/api/fs";
 import { downloadDir } from "@tauri-apps/api/path";
+import { ask } from "@tauri-apps/api/dialog";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Management() {
   const [fileData, setFileData] = useState(() => {
@@ -21,7 +23,10 @@ export default function Management() {
   const shouldLog = useRef(true);
   const [syslog, setSyslog] = useState("All Systems Operational");
   const [variant, setVariant] = useState("primary");
-
+  const [userUID, setuserUID] = useState("");
+  const [disableRefreshButton, setDisableRefreshButton] = useState(false);
+  const [disableFileButtons, setDisableFileButtons] = useState(false);
+  const { currentUser } = useAuth();
   useEffect(() => {
     sessionStorage.setItem("myData", JSON.stringify(fileData));
   }, [fileData]);
@@ -38,7 +43,6 @@ export default function Management() {
         });
 
         if (directoryExists) {
-          console.log(`${folderPath} already exists.`);
           setDownloadPath(folderPath);
         } else {
           await createDir(folderName, {
@@ -59,28 +63,35 @@ export default function Management() {
     if (shouldLog.current) {
       shouldLog.current = false;
       getDownloadDirectory();
+      setuserUID(currentUser.uid);
     }
   }, []);
   const listItem = async () => {
+    setDisableRefreshButton(true);
     try {
       setVariant("info");
-      setSyslog("Contacting Storage");
-      const res = await storage.ref().child("images/").listAll();
+      setSyslog("Contacting storage...");
+      const res = await storage.ref().child(`documents/${userUID}/`).listAll();
       const newData = [];
       res.items.forEach((item) => {
         newData.push(item.name);
       });
       setFileData(newData);
       setVariant("success");
-      setSyslog("List Refreshed");
+      setSyslog("File list refreshed");
     } catch (err) {
       setVariant("danger");
       setSyslog(err.message);
     }
+    setDisableRefreshButton(false);
   };
   const handleDownload = async (name) => {
+    setDisableRefreshButton(true);
+    setDisableFileButtons(true);
     try {
-      const fileRef = storage.ref().child(`images/${name}`);
+      setVariant("info");
+      setSyslog(`Download in progress...`);
+      const fileRef = storage.ref().child(`documents/${userUID}/${name}`);
       const downloadUrl = await fileRef.getDownloadURL();
       const client = await getClient();
       const response = await client.get(downloadUrl, {
@@ -88,11 +99,44 @@ export default function Management() {
       });
       const data = response.data;
       await writeBinaryFile(`${downloadPath}/${name}`, data);
-      console.log("Downloaded file");
+      setVariant("success");
+      setSyslog(`Downloaded ${name}`);
     } catch (err) {
       setVariant("danger");
       setSyslog(err.message);
     }
+    setDisableRefreshButton(false);
+    setDisableFileButtons(false);
+  };
+  const handleDelete = async (fileName) => {
+    const confirmed = await ask(
+      `Are you sure you want to delete ${fileName}?`,
+      {
+        title: "Vault Drive",
+        type: "warning",
+      }
+    );
+
+    if (!confirmed) {
+      // User canceled deletion
+      return;
+    }
+
+    try {
+      setDisableRefreshButton(true);
+      setDisableFileButtons(true);
+      setVariant("info");
+      setSyslog(`File deletion in progress...`);
+      await storage.ref().child(`documents/${userUID}/${fileName}`).delete();
+      setFileData((prevData) => prevData.filter((file) => file !== fileName));
+      setVariant("success");
+      setSyslog(`Deleted ${fileName}`);
+    } catch (err) {
+      setVariant("danger");
+      setSyslog(err.message);
+    }
+    setDisableRefreshButton(false);
+    setDisableFileButtons(false);
   };
   return (
     <>
@@ -102,14 +146,16 @@ export default function Management() {
       <Container className="p-3">
         <Alert variant={variant}>{syslog}</Alert>
         <div className="w-100 text-center mb-3">
-          <Button onClick={() => listItem()}>Refresh List</Button>{" "}
+          <Button disabled={disableRefreshButton} onClick={() => listItem()}>
+            Refresh List
+          </Button>{" "}
         </div>
         <div className="w-100">
           {fileData.length === 0 ? (
             <>
               <h4 className="text-center mt-4">No files found 🙁</h4>
               <h6 className="text-center mt-4">
-                (Hint: Try hitting the refresh button)
+                (Hint: Try hitting the refresh list button)
               </h6>
             </>
           ) : (
@@ -124,12 +170,14 @@ export default function Management() {
                     : file}
                   <div className="d-flex" style={{ gap: "10px" }}>
                     <button
+                      disabled={disableFileButtons}
                       className="btn btn-danger ml-2"
-                      onClick={() => handleDelete(file.name)}
+                      onClick={() => handleDelete(file)}
                     >
                       <Trash3Fill />
                     </button>
                     <button
+                      disabled={disableFileButtons}
                       className="btn btn-primary mr-2"
                       onClick={() => handleDownload(file)}
                     >

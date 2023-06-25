@@ -84,7 +84,8 @@ export default function ECDH() {
     }
   }
   async function handleEncrypt(key) {
-    console.log("Encryption!!!");
+    setVariant("info");
+    setSyslog(`File encryption in progress...`);
     if (key === "") {
       setVariant("danger");
       setSyslog("Please provide a key");
@@ -105,7 +106,8 @@ export default function ECDH() {
     );
   }
   async function handleDecrypt(key) {
-    console.log("Decryption!!!");
+    setVariant("info");
+    setSyslog(`File decryption in progress...`);
     if (key === "") {
       setVariant("danger");
       setSyslog("Please provide a key");
@@ -165,7 +167,7 @@ export default function ECDH() {
       }
       try {
         setVariant("info");
-        setSyslog("File uploading in progress...");
+        setSyslog("File upload in progress...");
         const fileContent = await readBinaryFile(fileToUpload);
 
         const response = await fetch("https://transfer.sh/", {
@@ -243,7 +245,11 @@ export default function ECDH() {
               <Form.Label>Public Key</Form.Label>
               <Form.Control ref={publicKeyRef} className="mb-3" />
               <Form.Label>Private Key</Form.Label>
-              <Form.Control ref={privateKeyRef} className="mb-3" type="password" />
+              <Form.Control
+                ref={privateKeyRef}
+                className="mb-3"
+                type="password"
+              />
               <Form.Label>Shared Secret Key</Form.Label>
               <Form.Control
                 readOnly
