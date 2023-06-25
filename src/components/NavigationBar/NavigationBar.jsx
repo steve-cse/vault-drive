@@ -41,7 +41,7 @@ export default function NavigationBar() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse>
             <Nav className="me-auto">
-              <Nav.Link onClick={() => navigate("/")}>Upload</Nav.Link>
+              <Nav.Link onClick={() => navigate("/")}>Central</Nav.Link>
               <Nav.Link onClick={() => navigate("/management")}>
                 Management
               </Nav.Link>

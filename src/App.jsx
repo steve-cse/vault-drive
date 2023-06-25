@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Route, Link, Routes } from "react-router-dom";
 import Signup from "./pages/Signup/Signup";
 import Login from "./pages/Login/Login";
-import Upload from "./pages/Upload/Upload";
+import Central from "./pages/Central/Central";
 import Management from "./pages/Management/Management";
 import ECDH from "./pages/ECDH/ECDH";
 import KeyGen from "./pages/KeyGen/KeyGen";
@@ -15,7 +15,7 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-            <Route exact path="/" element={ <PrivateRoute><Upload /></PrivateRoute>} />
+            <Route exact path="/" element={ <PrivateRoute><Central /></PrivateRoute>} />
             <Route exact path="/signup" element={<Signup />} />
             <Route exact path="/login" element={<Login />} />
             <Route exact path="/forgot-password" element={<ForgotPassword />} />

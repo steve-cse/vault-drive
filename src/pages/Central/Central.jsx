@@ -8,7 +8,7 @@ import { invoke } from "@tauri-apps/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { storage } from "../../firebaseconfig/firebase";
 
-export default function Upload() {
+export default function Central() {
   const keyRef = useRef();
   const deleteRef = useRef(); //deleteRef.current.checked
   const [selectedFile, setSelectedFile] = useState("");
@@ -164,7 +164,7 @@ export default function Upload() {
         <div className="w-100">
           <Form>
             <Form.Group>
-              <Form.Label>File to Encrypt</Form.Label>
+              <Form.Label>File to Encrypt or Decrypt</Form.Label>
               <InputGroup className="mb-3">
                 <InputGroup.Text
                   onClick={() => openFile()}

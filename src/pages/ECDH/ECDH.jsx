@@ -228,7 +228,7 @@ export default function ECDH() {
           <Alert variant={variant}>{syslog}</Alert>
           <Form>
             <Form.Group>
-              <Form.Label>File to Encrypt</Form.Label>
+              <Form.Label>File to Encrypt or Decrypt</Form.Label>
               <InputGroup className="mb-3">
                 <InputGroup.Text
                   onClick={() => openFile()}
