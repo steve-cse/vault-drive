@@ -5,7 +5,7 @@
     "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:5173",
     "distDir": "../dist",
-    "withGlobalTauri":false
+    "withGlobalTauri": false
   },
   "package": {
     "productName": "vault-drive",
@@ -13,18 +13,28 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true,
       "fs": {
-        "all": true,
-        "scope": ["**/*"]
+        "readFile": true,
+        "writeFile": true,
+        "exists": true,
+        "createDir": true,
+        "scope": [
+          "**/*"
+        ]
+      },
+      "dialog": {
+        "open": true,
+        "ask": true
       },
       "http": {
         "all": true,
         "request": true,
-        "scope": ["https://**/*"] 
+        "scope": [
+          "https://**/*"
+        ]
       },
       "path": {
-        "all": true 
+        "all": true
       },
       "clipboard": {
         "writeText": true

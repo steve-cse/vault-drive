@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
-import { readBinaryFile, writeBinaryFile, exists } from "@tauri-apps/api/fs";
+import { readBinaryFile} from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/dialog";
 import { ask } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
