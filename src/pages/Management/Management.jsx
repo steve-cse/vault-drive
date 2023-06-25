@@ -153,7 +153,7 @@ export default function Management() {
         <div className="w-100">
           {fileData.length === 0 ? (
             <>
-              <h4 className="text-center mt-4">No files found 🙁</h4>
+              <h4 className="text-center mt-4">No files found </h4>
               <h6 className="text-center mt-4">
                 (Hint: Try hitting the refresh list button)
               </h6>
