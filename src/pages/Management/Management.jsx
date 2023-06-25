@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { storage } from "../../firebaseconfig/firebase";
-import { Button, Container } from "react-bootstrap";
+import { Button, Container, Alert } from "react-bootstrap";
 import { Download, Trash3Fill } from "react-bootstrap-icons";
 import { getClient, ResponseType } from "@tauri-apps/api/http";
 import {
@@ -19,6 +19,8 @@ export default function Management() {
   });
   const [downloadPath, setDownloadPath] = useState("");
   const shouldLog = useRef(true);
+  const [syslog, setSyslog] = useState("All Systems Operational");
+  const [variant, setVariant] = useState("primary");
 
   useEffect(() => {
     sessionStorage.setItem("myData", JSON.stringify(fileData));
@@ -43,31 +45,37 @@ export default function Management() {
             dir: BaseDirectory.Download,
             recursive: true,
           });
-          console.log(`Created ${folderPath}`);
+
+          setVariant("success");
+          setSyslog(`Created ${folderPath}`);
           setDownloadPath(folderPath);
         }
-      } catch (error) {
-        console.error("Failed to create vault-downloads folder:", error);
+      } catch (err) {
+        setVariant("danger");
+        setSyslog("Failed to create vault-downloads folder:", err);
       }
     }
 
     if (shouldLog.current) {
       shouldLog.current = false;
-      console.log("i fire once");
       getDownloadDirectory();
     }
   }, []);
   const listItem = async () => {
     try {
-      console.log("Contacting Storage");
+      setVariant("info");
+      setSyslog("Contacting Storage");
       const res = await storage.ref().child("images/").listAll();
       const newData = [];
       res.items.forEach((item) => {
         newData.push(item.name);
       });
       setFileData(newData);
+      setVariant("success");
+      setSyslog("List Refreshed");
     } catch (err) {
-      alert(err.message);
+      setVariant("danger");
+      setSyslog(err.message);
     }
   };
   const handleDownload = async (name) => {
@@ -82,16 +90,20 @@ export default function Management() {
       await writeBinaryFile(`${downloadPath}/${name}`, data);
       console.log("Downloaded file");
     } catch (err) {
-      alert(err.message);
+      setVariant("danger");
+      setSyslog(err.message);
     }
   };
   return (
     <>
       <NavigationBar />
-      <h3 className="text-center mt-4">Effortlessly Organize Files</h3>
-      <Button onClick={() => listItem()}>Refresh</Button>
-      <Button>List</Button>
+      <h3 className="text-center mt-4">Effortlessly Manage Files</h3>
+
       <Container className="p-3">
+        <Alert variant={variant}>{syslog}</Alert>
+        <div className="w-100 text-center mb-3">
+          <Button onClick={() => listItem()}>Refresh List</Button>{" "}
+        </div>
         <div className="w-100">
           {fileData.length === 0 ? (
             <>

@@ -5,8 +5,8 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import _sodium from "libsodium-wrappers";
 
 export default function KeyGen() {
-  const [privateKeyText, setPrivateKey] = useState('');
-  const [publicKeyText, setPublicKey] = useState('');
+  const [privateKeyText, setPrivateKey] = useState("");
+  const [publicKeyText, setPublicKey] = useState("");
   const [variant, setVariant] = useState("warning");
   const [syslog, setSyslog] = useState(
     "Do not disclose your private key to anyone! Only exchange public keys."
@@ -36,12 +36,10 @@ export default function KeyGen() {
     const sodium = _sodium;
 
     const keyPair = sodium.crypto_kx_keypair();
-    
 
     setPrivateKey(sodium.to_hex(keyPair.privateKey));
     setPublicKey(sodium.to_hex(keyPair.publicKey));
     console.log("Keys generated");
-   
   }
   return (
     <>
@@ -61,11 +59,7 @@ export default function KeyGen() {
               </InputGroup>
               <Form.Label>Private Key</Form.Label>
               <InputGroup className="mb-3">
-                <Form.Control
-                  
-                  readOnly
-                  defaultValue={privateKeyText}
-                />
+                <Form.Control readOnly defaultValue={privateKeyText} />
                 <Button onClick={() => copyPrivateKey()}>Copy</Button>
               </InputGroup>
             </Form.Group>
