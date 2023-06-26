@@ -1,9 +1,9 @@
 [package]
 name = "app"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
+description = "Protecting your files empowering your privacy"
+authors = ["Steve"]
+license = "MIT OR Apache-2.0"
 repository = ""
 default-run = "app"
 edition = "2021"

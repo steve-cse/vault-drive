@@ -45,8 +45,8 @@
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
+      "category": "Utility",
+      "copyright": "2023",
       "deb": {
         "depends": []
       },
@@ -58,8 +58,9 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
-      "longDescription": "",
+      "identifier": "vault.drive",
+      "publisher": "Steve Boby George",
+      "longDescription": "Vault Drive Protecting your files empowering your privacy since 2023",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -68,7 +69,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
+      "shortDescription": "Protecting your files empowering your privacy",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -87,7 +88,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "vault-drive",
+        "title": "Vault Drive",
         "width": 800
       }
     ]
