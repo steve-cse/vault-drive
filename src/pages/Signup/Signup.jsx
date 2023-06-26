@@ -25,7 +25,7 @@ export default function Signup() {
       console.log("Routing to login.")
       navigate("/login");
     } catch (err) {
-      setError(err.code);
+      setError(err.code.replace("auth/", ""));
       setLoading(false);
     }
    

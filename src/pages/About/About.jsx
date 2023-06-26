@@ -85,6 +85,7 @@ export default function About() {
         </ul>
 
         <footer className="w-100 text-center mt-4">
+          <p>Protecting your files, empowering your privacy</p>
           <p>
             Crafted and engineered with{" "}
             <span style={{ color: "Tomato" }}>

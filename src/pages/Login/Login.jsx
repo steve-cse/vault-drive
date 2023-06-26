@@ -20,7 +20,7 @@ export default function Login() {
       console.log("Routing to Dashboard.");
       navigate("/");
     } catch (err) {
-      setError(err.code);
+      setError(err.code.replace("auth/", ""));
       setLoading(false);
     }
   }
