@@ -1,6 +1,6 @@
 import React from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
-import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import { HeartFill } from "react-bootstrap-icons";
 export default function About() {
   return (
