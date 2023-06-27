@@ -57,7 +57,10 @@ This project was inspired by the projects listed below :
 - [RocketEncrypt](https://github.com/fer1s/rocketencrypt) by [@fer1s](https://github.com/fer1s/)
 
 # Contribution
-Contribution are always welcome. Feel free to open an issue or create a pull request if you want to improve the model or add new features.
+Contribution are always welcome. Feel free to open an issue or create a pull request if you want to improve the project or add new features.
+
+# Warning
+ At this time this solution should be considered suitable for research and experimentation, further code and security review is needed before utilization in a production application.
 
 # License
 This project is licensed under the terms of the MIT license.
