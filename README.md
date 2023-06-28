@@ -9,7 +9,7 @@
   <p align="center">
   Protecting your files, empowering your privacy
     <br /> 
-    <a href="https://youtu.be/a5APg49S9MY"><strong>Check out the Demo »</strong></a>
+    <a href="https://youtu.be/a5APg49S9MY"><strong>Check out the Demo</strong></a>
     
   </p>
 </p>
