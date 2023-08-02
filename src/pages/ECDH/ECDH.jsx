@@ -21,6 +21,7 @@ export default function ECDH() {
   const [disableEncButton, setDisableEncButton] = useState(false);
   const [disableDecButton, setDisableDecButton] = useState(false);
   const [shareableLink, setShareableLink] = useState("");
+  const [tokenLink, setTokenLink] = useState("");
   const [syslog, setSyslog] = useState(
     "Use your private key and the recipient's public key when encrypting a file, and employ the sender's public key along with your private key when decrypting a file."
   );
@@ -182,8 +183,11 @@ export default function ECDH() {
           responseType: 2,
         });
 
-        console.log(response.data);
+        //set shareable link
         setShareableLink(response.data);
+        //set token link
+        const url_delete = response.rawHeaders["x-url-delete"][0].split("/");
+        setTokenLink(url_delete[url_delete.length - 1]);
         // Check if deleteRef is checked and the file extension is ".enc"
         if (deleteRef.current.checked && fileName.endsWith(".enc")) {
           invoke("delete_file", { filePath: fileToUpload }).then((response) => {
@@ -217,6 +221,17 @@ export default function ECDH() {
       setSyslog(error);
     }
   }
+  async function copyToken() {
+    try {
+      await writeText(tokenLink);
+      setVariant("success");
+      setSyslog("Token copied to clipboard");
+    } catch (error) {
+      setVariant("danger");
+      setSyslog(error);
+    }
+  }
+
   return (
     <>
       <NavigationBar />
@@ -225,7 +240,6 @@ export default function ECDH() {
       </h3>
       <Container className="p-3">
         <div className="w-100">
-          <Alert variant={variant}>{syslog}</Alert>
           <Form>
             <Form.Group>
               <Form.Label>File to Encrypt or Decrypt</Form.Label>
@@ -281,8 +295,14 @@ export default function ECDH() {
                 <Form.Control readOnly defaultValue={shareableLink} />
                 <Button onClick={() => copyLink()}>Copy</Button>
               </InputGroup>
+              <Form.Label>Deletion Token</Form.Label>
+              <InputGroup className="mb-3">
+                <Form.Control readOnly defaultValue={tokenLink} />
+                <Button onClick={() => copyToken()}>Copy</Button>
+              </InputGroup>
             </Form.Group>
           </Form>
+          <Alert variant={variant}>{syslog}</Alert>
         </div>
         <div className="mt-4">
           <Button
