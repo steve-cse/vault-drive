@@ -1,18 +1,22 @@
 import React, { useState, useRef } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
-import { readBinaryFile} from "@tauri-apps/api/fs";
+import { readBinaryFile } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/dialog";
 import { ask } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { storage } from "../../firebaseconfig/firebase";
+import { ArrowClockwise } from "react-bootstrap-icons";
+import { writeText } from "@tauri-apps/api/clipboard";
+import _sodium from "libsodium-wrappers";
 
 export default function Central() {
   const keyRef = useRef();
   const deleteRef = useRef(); //deleteRef.current.checked
   const [selectedFile, setSelectedFile] = useState("");
   const [fileToUpload, setFileToUpload] = useState("");
+  const [pwkey, setPwkey] = useState("");
   const [disableEncButton, setDisableEncButton] = useState(false);
   const [disableDecButton, setDisableDecButton] = useState(false);
   const [variant, setVariant] = useState("primary");
@@ -153,7 +157,30 @@ export default function Central() {
       }
     }
   }
+  async function generatePassword() {
+    await _sodium.ready;
+    const sodium = _sodium;
+    let password = sodium.to_base64(
+      sodium.randombytes_buf(16),
+      sodium.base64_variants.URLSAFE_NO_PADDING
+    );
 
+    keyRef.current.value = password;
+    setPwkey(password);
+    setVariant("success");
+    setSyslog("Random key generated");
+  }
+
+  async function copyKey() {
+    try {
+      await writeText(keyRef.current.value);
+      setVariant("success");
+      setSyslog("Key copied to clipboard");
+    } catch (error) {
+      setVariant("danger");
+      setSyslog(error.message);
+    }
+  }
   return (
     <>
       <NavigationBar />
@@ -179,7 +206,24 @@ export default function Central() {
                 />
               </InputGroup>
               <Form.Label>Key</Form.Label>
-              <Form.Control ref={keyRef} type="password" className="mb-3" />
+
+              <InputGroup className="mb-3">
+                <Form.Control
+                  ref={keyRef}
+                  defaultValue={pwkey}
+                  type="password"
+                />
+                <Button
+                  variant="outline-primary"
+                  onClick={() => generatePassword()}
+                >
+                  <ArrowClockwise />
+                </Button>
+                <Button variant="primary" onClick={() => copyKey()}>
+                  Copy
+                </Button>
+              </InputGroup>
+
               <Form.Label>File to Upload</Form.Label>
               <InputGroup className="mb-3 ">
                 <Form.Control
