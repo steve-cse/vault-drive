@@ -9,6 +9,7 @@ import About from "./pages/About/About";
 import { AuthProvider } from "./contexts/AuthContext";
 import PrivateRoute from "./components/PrivateRoute/PrivateRoute";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import Account from "./pages/Account/Account";
 function App() {
   return (
     <>
@@ -23,6 +24,7 @@ function App() {
             <Route exact path="/ecdh" element={<PrivateRoute><ECDH /></PrivateRoute>} />
             <Route exact path="/keygen" element={<PrivateRoute><KeyGen /></PrivateRoute>} />
             <Route exact path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
+            <Route exact path="/account" element={<PrivateRoute><Account /></PrivateRoute>} />
           </Routes>
         </AuthProvider>
       </Router>
