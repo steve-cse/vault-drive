@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
 import { readBinaryFile } from "@tauri-apps/api/fs";
@@ -21,7 +21,28 @@ export default function Central() {
   const [disableDecButton, setDisableDecButton] = useState(false);
   const [variant, setVariant] = useState("primary");
   const [syslog, setSyslog] = useState("All Systems Operational");
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
+  async function handleLogout() {
+    try {
+      await logout();
+      sessionStorage.setItem("myData", ""); //erase persistent state
+      window.open("/login", "_top");
+    } catch {
+      setVariant("danger");
+      setSyslog("Failed to logout");
+    }
+  }
+  useEffect(() => {
+    currentUser.getIdTokenResult().then((tokenResult) => {
+      const authTime = tokenResult.claims.auth_time * 1000;
+      const sessionDuration = 1000 * 60 * 60 * 24 * 1;
+      const elapsedTime = Date.now() - authTime;
+      console.log("Session logout:", elapsedTime >= sessionDuration);
+      if (elapsedTime >= sessionDuration) {
+        handleLogout();
+      }
+    });
+  }, []);
 
   const openFile = async () => {
     const selected = await open({

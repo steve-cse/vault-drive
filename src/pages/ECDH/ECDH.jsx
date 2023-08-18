@@ -1,14 +1,22 @@
 import React, { useState, useRef } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
-import { Form, InputGroup, Button, Container, Alert } from "react-bootstrap";
+import {
+  Form,
+  InputGroup,
+  Button,
+  Container,
+  Alert,
+  Dropdown,
+} from "react-bootstrap";
 import _sodium from "libsodium-wrappers";
-import { open } from "@tauri-apps/api/dialog";
+import { open as dialogOpen } from "@tauri-apps/api/dialog";
 import { readBinaryFile } from "@tauri-apps/api/fs";
 import { ask } from "@tauri-apps/api/dialog";
 import { invoke } from "@tauri-apps/api";
 import { Body } from "@tauri-apps/api/http";
 import { fetch } from "@tauri-apps/api/http";
 import { writeText } from "@tauri-apps/api/clipboard";
+import { open } from "@tauri-apps/api/shell";
 
 export default function ECDH() {
   const publicKeyRef = useRef();
@@ -27,7 +35,7 @@ export default function ECDH() {
   );
 
   const openFile = async () => {
-    const selected = await open({
+    const selected = await dialogOpen({
       multiple: false,
     });
 
@@ -128,7 +136,7 @@ export default function ECDH() {
     );
   }
   const openFileToUpload = async () => {
-    const selected = await open({
+    const selected = await dialogOpen({
       multiple: false,
     });
 
@@ -210,6 +218,52 @@ export default function ECDH() {
       }
     }
   }
+
+  const shareOnTelegram = async () => {
+    const text = "Check out this link: " + shareableLink;
+    const telegramUrl = `https://t.me/share/url?url=${shareableLink}&text=${encodeURIComponent(
+      text
+    )}`;
+    await open(telegramUrl);
+  };
+
+  const shareOnWhatsApp = async () => {
+    const text = "Check out this link: " + shareableLink;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+      text
+    )}`;
+    await open(whatsappUrl);
+  };
+
+  const shareOnFacebook = async () => {
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareableLink}`;
+    await open(shareUrl);
+  };
+
+  const shareOnTwitter = async () => {
+    const text = "Check out this link: " + shareableLink;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      text
+    )}`;
+    await open(twitterUrl);
+  };
+
+  const shareOnReddit = async () => {
+    const text = "Check out this link: " + shareableLink;
+    const redditUrl = `https://www.reddit.com/submit?url=${shareableLink}&title=${encodeURIComponent(
+      text
+    )}`;
+    await open(redditUrl);
+  };
+
+  const shareOnLinkedIn = async () => {
+    const title = "Check out this link";
+    const description = "Description of your link";
+    const linkedInUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${shareableLink}&title=${encodeURIComponent(
+      title
+    )}&summary=${encodeURIComponent(description)}`;
+    await open(linkedInUrl);
+  };
 
   async function copyLink() {
     try {
@@ -293,7 +347,34 @@ export default function ECDH() {
               <Form.Label>Shareable Link</Form.Label>
               <InputGroup className="mb-3">
                 <Form.Control readOnly defaultValue={shareableLink} />
-                <Button onClick={() => copyLink()}>Copy</Button>
+
+                <Dropdown>
+                  <Dropdown.Toggle>Share</Dropdown.Toggle>
+
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => copyLink()}>
+                      Copy
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={shareOnTelegram}>
+                      Telegram
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={shareOnWhatsApp}>
+                      WhatsApp
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={shareOnFacebook}>
+                      Facebook
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={shareOnTwitter}>
+                      X (formerly Twitter)
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={shareOnReddit}>
+                      Reddit
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={shareOnLinkedIn}>
+                      LinkedIn
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
               </InputGroup>
               <Form.Label>Deletion Token</Form.Label>
               <InputGroup className="mb-3">
