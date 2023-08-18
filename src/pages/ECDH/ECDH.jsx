@@ -353,7 +353,7 @@ export default function ECDH() {
 
                   <Dropdown.Menu>
                     <Dropdown.Item onClick={() => copyLink()}>
-                      Copy
+                      Copy to Clipboard
                     </Dropdown.Item>
                     <Dropdown.Item onClick={shareOnTelegram}>
                       Telegram
