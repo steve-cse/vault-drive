@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 
-# Data for DES, AES-256, and ChaCha20
-algorithms = ['DES', 'AES-256', 'ChaCha20']
-key_sizes = [56, 256, 256]
-block_sizes = [64, 128, 512]
-rounds = [16, 14, 20]
+# Data for AES-256 and ChaCha20
+algorithms = ['AES-256', 'ChaCha20']
+key_sizes = [256, 256]
+block_sizes = [128, 512]
+rounds = [14, 20]
 
 # Plotting the graph
 fig, ax = plt.subplots()
@@ -17,7 +17,7 @@ bar3 = ax.bar([i + 2 * bar_width for i in index], rounds, bar_width, label='Roun
 
 ax.set_xlabel('Algorithms')
 ax.set_ylabel('Bits')
-ax.set_title('Key Size, Block Size, and Rounds for DES, AES-256, and ChaCha20')
+ax.set_title('Key Size, Block Size, and Rounds for AES-256 and ChaCha20')
 ax.set_xticks([i + bar_width for i in index])
 ax.set_xticklabels(algorithms)
 ax.legend()
