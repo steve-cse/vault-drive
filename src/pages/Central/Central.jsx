@@ -35,7 +35,7 @@ export default function Central() {
   useEffect(() => {
     currentUser.getIdTokenResult().then((tokenResult) => {
       const authTime = tokenResult.claims.auth_time * 1000;
-      const sessionDuration = 1000 * 60 * 60 * 24 * 7;
+      const sessionDuration = 1000 * 60 * 60; // 1 hour in milliseconds
       const elapsedTime = Date.now() - authTime;
       console.log("Session logout:", elapsedTime >= sessionDuration);
       if (elapsedTime >= sessionDuration) {
