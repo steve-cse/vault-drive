@@ -6,7 +6,6 @@
    ![Vault-Drive-Banner](https://socialify.git.ci/steve-cse/vault-drive/image?description=1&font=Raleway&forks=1&logo=https://raw.githubusercontent.com/steve-cse/vault-drive/master/src/assets/logo.png&owner=1&stargazers=1&theme=Dark
 )
  
-  <h1 align="center"><b>Vault Drive</b></h1>
   <p align="center">
   Protecting your files, empowering your privacy
     <br /> 
